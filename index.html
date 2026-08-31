@@ -1,0 +1,81 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<meta name="description" content="softies — Growing Through Play. Safe, meaningful toys that inspire learning, creativity, confidence and imagination.">
+<title>softies | Growing Through Play</title>
+<link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+<div id="site-header"></div>
+<main>
+<section class="hero">
+  <div class="container hero-grid">
+    <div>
+      <span class="eyebrow">🌱 softies • Growing Through Play</span>
+      <h1>Growing Through Play</h1>
+      <p>Every toy is a little opportunity to learn, create, imagine and grow.</p>
+      <p class="muted">To make every child’s playtime meaningful by offering toys that inspire learning, creativity, confidence, and imagination.</p>
+      <p><a class="btn btn-primary" href="shop.html">Explore Toys</a> <a class="btn btn-outline" href="#purpose">Our Purpose</a></p>
+    </div>
+    <div class="hero-art" aria-label="Colourful toy collection">🧸🌈🧩🚗</div>
+  </div>
+</section>
+
+<section class="section" id="purpose">
+  <div class="container">
+    <div class="purpose-card">
+      <div><span class="eyebrow">OUR PURPOSE</span><h2>Play today. Grow tomorrow.</h2></div>
+      <p>At <strong>softies</strong>, we believe play is an important part of childhood. We choose toys that encourage safe, joyful play while helping children build skills, confidence and imagination.</p>
+    </div>
+  </div>
+</section>
+
+<section class="section" id="categories">
+  <div class="container">
+    <div class="section-head"><div><h2>Find Their Kind of Fun</h2><p class="muted">Thoughtfully chosen toys for curious little minds.</p></div></div>
+    <div class="grid categories" id="categoryGrid"></div>
+  </div>
+</section>
+
+<section class="section">
+  <div class="container">
+    <div class="section-head"><div><h2>Little Favourites</h2><p class="muted">Handpicked toys for happy, meaningful play.</p></div><a class="btn btn-outline" href="shop.html">View All</a></div>
+    <div class="grid products" id="featuredProducts"></div>
+  </div>
+</section>
+
+<section class="section">
+  <div class="container">
+    <div class="section-head"><div><h2>Why Parents Choose softies</h2><p class="muted">Because play should be fun, useful and safe.</p></div></div>
+    <div class="grid features">
+      <div class="feature">🧠<b>Learning</b><small>Play that builds skills</small></div>
+      <div class="feature">🎨<b>Creativity</b><small>Ideas that spark imagination</small></div>
+      <div class="feature">💪<b>Confidence</b><small>Encouraging independent play</small></div>
+      <div class="feature">🛡️<b>Safety Focused</b><small>Thoughtfully selected toys</small></div>
+      <div class="feature">💛<b>Meaningful Play</b><small>More joy in every moment</small></div>
+    </div>
+  </div>
+</section>
+
+<section class="section">
+  <div class="container offer"><div><span class="eyebrow">SPECIAL OFFER</span><h2>More Play. More Smiles.</h2><p>Up to 40% Off on selected toys.</p><a class="btn btn-primary" href="shop.html">Shop Offers</a></div><div style="font-size:7rem">🎁</div></div>
+</section>
+
+<section class="section">
+  <div class="container">
+    <h2>Happy Families</h2>
+    <div class="grid reviews">
+      <div class="review">★★★★★<p>“Excellent quality and fast delivery. My son loved the RC car!”</p><b>— Priya, Chennai</b></div>
+      <div class="review">★★★★★<p>“The educational toys are colourful, useful and beautifully packed.”</p><b>— Rahul, Coimbatore</b></div>
+      <div class="review">★★★★★<p>“Easy shopping experience and great prices.”</p><b>— Ananya, Bengaluru</b></div>
+    </div>
+  </div>
+</section>
+
+<section class="section"><div class="container newsletter"><h2>Stay in the softies Circle</h2><p>New arrivals, special offers and playtime inspiration.</p><form onsubmit="event.preventDefault();toast('Thanks for joining softies!')"><input type="email" required placeholder="Enter your email address" aria-label="Email address"><button class="btn btn-primary">Subscribe</button></form></div></section>
+</main>
+<div id="site-footer"></div>
+<script src="js/products.js"></script><script src="js/main.js"></script>
+<script>document.addEventListener("DOMContentLoaded",()=>{const cats=[["Educational","🎓"],["Soft Toys","🧸"],["Remote Control","🏎️"],["Outdoor Toys","⚽"],["Building Toys","🧱"],["Baby Toys","🍼"]];categoryGrid.innerHTML=cats.map(([c,e])=>`<a class="category" href="shop.html?category=${encodeURIComponent(c)}"><div class="emoji">${e}</div><b>${c}</b></a>`).join("");renderProducts("#featuredProducts",products.filter(p=>p.featured))})</script>
+</body></html>

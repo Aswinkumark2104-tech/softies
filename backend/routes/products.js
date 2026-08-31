@@ -1,0 +1,1 @@
+const r=require("express").Router();r.get("/",(req,res)=>res.json([]));r.get("/:id",(req,res)=>res.status(404).json({message:"Product API placeholder: connect database"}));module.exports=r;

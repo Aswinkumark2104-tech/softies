@@ -1,0 +1,1 @@
+// Connect MongoDB or Supabase here using DATABASE_URL. Never expose credentials to the browser.

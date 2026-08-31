@@ -1,0 +1,7 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 700 600" role="img" aria-label="ToyLand toys illustration">
+<defs><linearGradient id="g" x1="0" y1="0" x2="1" y2="1"><stop stop-color="#6c4df6"/><stop offset="1" stop-color="#ff8da0"/></linearGradient></defs>
+<rect width="700" height="600" rx="45" fill="url(#g)"/>
+<circle cx="130" cy="120" r="55" fill="#ffca3a"/><circle cx="570" cy="105" r="42" fill="#fff"/>
+<text x="80" y="280" font-size="150">🧸</text><text x="300" y="255" font-size="140">🚗</text><text x="470" y="430" font-size="135">🧩</text>
+<text x="65" y="535" fill="white" font-family="Arial, sans-serif" font-size="42" font-weight="700">ToyLand Admin</text>
+</svg>

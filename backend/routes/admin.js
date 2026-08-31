@@ -1,0 +1,1 @@
+const r=require("express").Router();r.post("/login",(req,res)=>res.status(501).json({message:"Implement bcrypt + JWT/session login"}));r.post("/logout",(req,res)=>res.json({ok:true}));r.get("/me",(req,res)=>res.status(401).json({message:"Not authenticated"}));module.exports=r;

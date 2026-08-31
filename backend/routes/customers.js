@@ -1,0 +1,1 @@
+const r=require("express").Router();r.get("/",(req,res)=>res.status(401).json({message:"Admin authentication required"}));module.exports=r;

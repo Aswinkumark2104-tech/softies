@@ -1,0 +1,31 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>softies Admin Login</title>
+<link rel="stylesheet" href="css/style.css">
+<link rel="stylesheet" href="css/admin.css">
+</head>
+<body>
+<main class="owner-login-page">
+  <section class="owner-login-visual">
+    <img src="images/admin-login-illustration.svg" alt="softies toys illustration">
+  </section>
+  <section class="login-wrap">
+    <div class="login-card">
+      <h1>🧸 softies Admin</h1>
+      <p class="muted">Login to manage your toy store.</p>
+      <form id="loginForm">
+        <input id="username" placeholder="Username" autocomplete="username" required>
+        <input id="password" type="password" placeholder="Password" autocomplete="current-password" required>
+        <button class="btn btn-primary" type="submit">Login to Dashboard</button>
+        <p id="error" style="color:#c33;margin:0"></p>
+      </form>
+      <small>Demo login: <b>admin</b> / <b>ToyLand@2026</b></small>
+    </div>
+  </section>
+</main>
+<script src="js/owner-login.js"></script>
+</body>
+</html>

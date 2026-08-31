@@ -1,0 +1,1 @@
+module.exports=(req,res,next)=>{ /* verify JWT/session and admin role here */ next(); };

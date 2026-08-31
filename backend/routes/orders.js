@@ -1,0 +1,1 @@
+const r=require("express").Router();r.post("/",(req,res)=>res.status(501).json({message:"Connect database and server-side price validation"}));r.get("/",(req,res)=>res.status(401).json({message:"Admin authentication required"}));module.exports=r;
