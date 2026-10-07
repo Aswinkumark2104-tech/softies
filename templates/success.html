@@ -1,0 +1,16 @@
+{% extends "base.html" %}
+{% block title %}Allocation Successful{% endblock %}
+{% block content %}
+<div class="card success-card">
+  <div class="success-icon">✓</div>
+  <h1>Allocation Successful</h1>
+  <div class="summary">
+    <p><span>Student Name</span><strong>{{ student.name }}</strong></p>
+    <p><span>Register Number</span><strong>{{ student.reg_no }}</strong></p>
+    <p><span>Faculty</span><strong>{{ allocation.faculty.faculty_name }}</strong></p>
+    <p><span>Specialization</span><strong>{{ allocation.specialization }}</strong></p>
+    <p><span>Date &amp; Time</span><strong>{{ allocation.allocated_at.strftime('%d-%m-%Y %H:%M:%S') }}</strong></p>
+  </div>
+  <p class="muted">Your faculty allocation has been recorded successfully.</p>
+</div>
+{% endblock %}

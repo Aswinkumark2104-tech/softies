@@ -1,0 +1,51 @@
+{% extends "base.html" %}
+{% block title %}Staff Confirmation{% endblock %}
+{% block content %}
+<div class="student-round-timer {% if not timer_active %}closed{% endif %}">
+  <span>Selection time</span>
+  <strong id="pageCountdown">{% if timer_active %}{{ "%d:%02d"|format(remaining_seconds // 60, remaining_seconds % 60) }}{% else %}--:--{% endif %}</strong>
+</div>
+<script>
+let pageActive = {{ 'true' if timer_active else 'false' }};
+let pageRemaining = {{ remaining_seconds|int }};
+const pageCountdown = document.getElementById('pageCountdown');
+let redirecting = false;
+function updatePageTimer() {
+  pageCountdown.textContent = pageActive ? Math.floor(Math.max(0,pageRemaining)/60) + ':' + String(Math.max(0,pageRemaining)%60).padStart(2,'0') : '--:--';
+  if (!pageActive && !redirecting) { redirecting=true; setTimeout(() => { window.location.href='{{ url_for("index") }}'; }, 300); }
+}
+setInterval(async () => {
+  try { const r=await fetch('/api/round-status',{cache:'no-store'}); const d=await r.json(); pageActive=d.active; pageRemaining=d.remaining_seconds; updatePageTimer(); } catch(e) {}
+},1000);
+setInterval(() => { if(pageActive && pageRemaining>0) pageRemaining--; updatePageTimer(); },1000);
+</script>
+<div class="card">
+  <p class="step">Step 3 of 3</p>
+  <h1>Staff Confirmation</h1>
+  <p><strong>{{ student.name }}</strong> · {{ student.reg_no }}</p>
+  <p>Selected specialization: <strong>{{ specialization }}</strong></p>
+  <p class="muted">Choose any available guide. Guides are not filtered by specialization.</p>
+</div>
+{% if faculties %}
+<div class="faculty-grid">
+{% for item in faculties %}
+<div class="faculty-card">
+  <h2>{{ item.faculty.faculty_name }}</h2>
+  <p><strong>Email:</strong> {{ item.faculty.email or 'Not specified' }}</p>
+  <p><strong>Specialization:</strong> {{ item.faculty.specialization or 'Not specified' }}</p>
+  <p><strong>Assigned:</strong> {{ item.assigned }} / {{ item.faculty.max_students }}</p>
+  <p><strong>Available:</strong> {{ item.available }}</p>
+  <form method="POST" action="{{ url_for('review_allocation') }}">
+    <input type="hidden" name="faculty_id" value="{{ item.faculty.id }}">
+    <button class="btn primary" type="submit">CONFIRM GUIDE</button>
+  </form>
+</div>
+{% endfor %}
+</div>
+{% else %}
+<div class="card empty">
+  <h2>No active faculty available</h2>
+  <p>Please contact the administrator.</p>
+</div>
+{% endif %}
+{% endblock %}

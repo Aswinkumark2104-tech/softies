@@ -1,0 +1,11 @@
+{% extends "base.html" %}
+{% block title %}Already Allocated{% endblock %}
+{% block content %}
+<div class="card">
+  <h1>Already Allocated</h1>
+  <p>You have already been allocated to:</p>
+  <h2>{{ allocation.faculty.faculty_name }}</h2>
+  <p><strong>Register Number:</strong> {{ student.reg_no }}</p>
+  <p><strong>Date &amp; Time:</strong> {{ allocation.allocated_at.strftime('%d-%m-%Y %H:%M:%S') }}</p>
+</div>
+{% endblock %}

@@ -1,0 +1,145 @@
+{% extends "base.html" %}
+{% block title %}Admin Dashboard{% endblock %}
+{% block content %}
+<div class="admin-head">
+  <div>
+    <h1>Admin Dashboard</h1>
+    <p class="muted">Manage the student selection round, students, faculty, specializations and allocations.</p>
+  </div>
+  <a class="btn" href="{{ url_for('export_allocations') }}">Export Allocations Excel</a>
+</div>
+
+<div class="stats">
+  <div><span>Total Students</span><strong>{{ total_students }}</strong></div>
+  <div><span>Total Allocated</span><strong>{{ total_allocated }}</strong></div>
+  <div><span>Students Remaining</span><strong>{{ students_remaining }}</strong></div>
+  <div><span>Total Faculty</span><strong>{{ total_faculty }}</strong></div>
+</div>
+
+<div class="card timer-admin-card">
+  <h2>⏱ Student Selection Timer</h2>
+  <p class="muted">Set the time first, then click <strong>START STUDENT SELECTION</strong>. The same countdown is shown to every student. The timer is stored in the database, so it works correctly on Render.</p>
+  <div class="timer-panel">
+    <div class="admin-countdown {% if round_active %}live{% endif %}">
+      <span>Status</span>
+      <strong id="adminCountdown">{% if round_active %}{{ "%d:%02d"|format(remaining_seconds // 60, remaining_seconds % 60) }}{% else %}STOPPED{% endif %}</strong>
+    </div>
+    <form method="POST" action="{{ url_for('save_round_settings') }}" class="timer-form">
+      <label>Minutes <input type="number" name="minutes" min="0" max="60" value="{{ round_settings.duration_seconds // 60 }}" required></label>
+      <label>Seconds <input type="number" name="seconds" min="0" max="59" value="{{ round_settings.duration_seconds % 60 }}" required></label>
+      <button class="btn" type="submit" {% if round_active %}disabled{% endif %}>SAVE TIMER</button>
+    </form>
+    <div class="timer-actions">
+      <form method="POST" action="{{ url_for('start_round') }}" onsubmit="return confirm('Start the student selection now? Make sure you have reset old allocations if this is a new round.')">
+        <button class="btn primary" type="submit" {% if round_active %}disabled{% endif %}>▶ START STUDENT SELECTION</button>
+      </form>
+      <form method="POST" action="{{ url_for('stop_round') }}" onsubmit="return confirm('Stop student selection now?')">
+        <button class="btn danger" type="submit" {% if not round_active %}disabled{% endif %}>■ STOP SELECTION</button>
+      </form>
+    </div>
+  </div>
+</div>
+
+<div class="card">
+  <h2>Student Management</h2>
+  <p class="muted">Add a student directly or replace the complete student Excel. Register Number, Name and Email are used by the student lookup.</p>
+  <form class="student-add-form" method="POST" action="{{ url_for('add_student') }}">
+    <input name="reg_no" placeholder="Register Number" required>
+    <input name="name" placeholder="Student Name" required>
+    <input name="email" type="email" placeholder="Student Email">
+    <button class="btn primary" type="submit">+ ADD STUDENT</button>
+  </form>
+  <div class="table-wrap">
+    <table class="admin-table">
+      <thead><tr><th>Register No</th><th>Name</th><th>Email</th><th>Status</th><th>Action</th></tr></thead>
+      <tbody>
+      {% for student in students %}
+      <tr>
+        <form method="POST" action="{{ url_for('edit_student', student_id=student.id) }}">
+          <td><input name="reg_no" value="{{ student.reg_no }}" required></td>
+          <td><input name="name" value="{{ student.name }}" required></td>
+          <td><input name="email" type="email" value="{{ student.email or '' }}"></td>
+          <td>{% if student.allocation %}<span class="badge">ALLOCATED</span>{% else %}<span class="muted">Pending</span>{% endif %}</td>
+          <td><button class="btn" type="submit">SAVE</button></td>
+        </form>
+      </tr>
+      {% endfor %}
+      </tbody>
+    </table>
+  </div>
+</div>
+
+<div class="card">
+  <h2>Replace Excel Data</h2>
+  <p class="muted">Upload the latest Excel to replace the current list. Example: upload 20 students and the total becomes 20; later upload 40 students and the total becomes 40. Replacing either list clears previous selections so the new round starts cleanly.</p>
+  <div class="upload-grid">
+    <form method="POST" action="{{ url_for('refresh_students') }}" onsubmit="return confirm('Replace ALL current student records with this Excel file? Previous student selections will be cleared.')" enctype="multipart/form-data">
+      <label>Student Excel</label>
+      <input type="file" name="student_file" accept=".xlsx,.xls" required>
+      <button class="btn primary" type="submit">REPLACE STUDENTS</button>
+    </form>
+    <form method="POST" action="{{ url_for('refresh_faculty') }}" onsubmit="return confirm('Replace ALL current faculty records with this Excel file? Previous student selections will be cleared.')" enctype="multipart/form-data">
+      <label>Faculty Excel</label>
+      <input type="file" name="faculty_file" accept=".xlsx,.xls" required>
+      <button class="btn primary" type="submit">REPLACE FACULTY</button>
+    </form>
+  </div>
+</div>
+
+<div class="card">
+  <h2>Specializations</h2>
+  <form class="inline-form" method="POST" action="{{ url_for('add_specialization') }}">
+    <input name="name" placeholder="New specialization" required>
+    <button class="btn" type="submit">Add</button>
+  </form>
+  <p class="muted">These choices appear to students. You can add, edit, or delete them.</p>
+  <div class="spec-list">
+    {% for s in specializations %}
+    <div class="spec-row">
+      <form class="inline-form" method="POST" action="{{ url_for('edit_specialization', spec_id=s.id) }}">
+        <input name="name" value="{{ s.name }}" required>
+        <button class="btn" type="submit">EDIT</button>
+      </form>
+      <form method="POST" action="{{ url_for('delete_specialization', spec_id=s.id) }}" onsubmit="return confirm('Delete this specialization?')">
+        <button class="btn danger" type="submit">DELETE</button>
+      </form>
+    </div>
+    {% endfor %}
+  </div>
+</div>
+
+<div class="card">
+  <h2>Faculty Management</h2>
+  {% for item in faculties %}
+  <form class="faculty-admin" method="POST" action="{{ url_for('save_faculty', faculty_pk=item.faculty.id) }}">
+    <div><label>Faculty</label><input name="faculty_name" value="{{ item.faculty.faculty_name }}" required></div>
+    <div><label>Email</label><input name="email" value="{{ item.faculty.email or '' }}"></div>
+    <div><label>Role</label><input name="role" value="{{ item.faculty.role or '' }}"></div>
+    <div><label>Specialization</label><select name="specialization"><option value="">Not specified</option>{% for s in specializations %}<option value="{{ s.name }}" {% if item.faculty.specialization and item.faculty.specialization|lower == s.name|lower %}selected{% endif %}>{{ s.name }}</option>{% endfor %}</select></div>
+    <div><label>Maximum Students</label><input name="max_students" type="number" min="{{ item.assigned if item.assigned > 0 else 1 }}" value="{{ item.faculty.max_students }}" required></div>
+    <div><label>Status</label><select name="status"><option value="Active" {% if item.faculty.status == 'Active' %}selected{% endif %}>Active</option><option value="Inactive" {% if item.faculty.status == 'Inactive' %}selected{% endif %}>Inactive</option></select></div>
+    <div class="capacity"><span>Assigned: <strong>{{ item.assigned }}</strong></span><span>Available: <strong>{{ item.available }}</strong></span></div>
+    <button class="btn primary" type="submit">SAVE</button>
+  </form>
+  {% endfor %}
+</div>
+
+<div class="card danger-card">
+  <h2>Reset Student Selection Data</h2>
+  <p>This clears only the collected student → faculty allocations. It keeps student names, register numbers, emails, faculty data and specializations.</p>
+  <form method="POST" action="{{ url_for('reset_allocations') }}" onsubmit="return confirm('WARNING: This will clear all collected student selections. Continue?')">
+    <button class="btn danger" type="submit">RESET STUDENT DATA / SELECTIONS</button>
+  </form>
+</div>
+
+<script>
+let adminRemaining = {{ remaining_seconds|int }};
+const adminCountdown = document.getElementById('adminCountdown');
+setInterval(() => {
+  if (adminRemaining > 0) {
+    adminRemaining--;
+    adminCountdown.textContent = Math.floor(adminRemaining / 60) + ':' + String(adminRemaining % 60).padStart(2, '0');
+  }
+}, 1000);
+</script>
+{% endblock %}

@@ -1,0 +1,136 @@
+{% extends "base.html" %}
+{% block title %}Select Specialization & Guide{% endblock %}
+{% block content %}
+<div class="student-round-timer {% if not timer_active %}closed{% endif %}">
+  <span>Selection time</span>
+  <strong id="pageCountdown">{% if timer_active %}{{ "%d:%02d"|format(remaining_seconds // 60, remaining_seconds % 60) }}{% else %}--:--{% endif %}</strong>
+</div>
+
+<script>
+let pageActive = {{ 'true' if timer_active else 'false' }};
+let pageRemaining = {{ remaining_seconds|int }};
+const pageCountdown = document.getElementById('pageCountdown');
+let redirecting = false;
+
+function updatePageTimer() {
+  pageCountdown.textContent = pageActive
+    ? Math.floor(Math.max(0, pageRemaining) / 60) + ':' +
+      String(Math.max(0, pageRemaining) % 60).padStart(2, '0')
+    : '--:--';
+
+  if (!pageActive && !redirecting && !document.body.dataset.saved) {
+    redirecting = true;
+    setTimeout(() => {
+      window.location.href = '{{ url_for("index") }}';
+    }, 300);
+  }
+}
+
+setInterval(async () => {
+  try {
+    const r = await fetch('/api/round-status', {cache: 'no-store'});
+    const d = await r.json();
+    pageActive = d.active;
+    pageRemaining = d.remaining_seconds;
+    updatePageTimer();
+  } catch (e) {}
+}, 1000);
+
+setInterval(() => {
+  if (pageActive && pageRemaining > 0) pageRemaining--;
+  updatePageTimer();
+}, 1000);
+</script>
+
+<div class="card">
+  <h1>Select Specialization</h1>
+  <p>Student: <strong>{{ student.name }}</strong> ({{ student.reg_no }})</p>
+
+  {% if not show_confirmation %}
+  <form method="POST" action="{{ url_for('specialization') }}" id="specializationForm">
+    <label for="specialization"><strong>Select Specialization <span aria-hidden="true">*</span></strong></label>
+
+    <select id="specialization" name="specialization" required>
+      <option value="" disabled {% if not selected_specialization %}selected{% endif %}>
+        Select Specialization
+      </option>
+      {% for spec in specializations %}
+      <option value="{{ spec }}"
+        {% if selected_specialization and spec|lower == selected_specialization|lower %}selected{% endif %}>
+        {{ spec }}
+      </option>
+      {% endfor %}
+    </select>
+
+    <small class="muted">Specialization is required before choosing a faculty guide.</small>
+
+    <button class="btn primary" type="submit">OK &amp; Continue</button>
+  </form>
+  {% else %}
+  <p>Selected specialization: <strong>{{ selected_specialization }}</strong></p>
+  {% endif %}
+</div>
+
+{% if selected_specialization and not show_confirmation %}
+<div class="card">
+  <h2>ALL AVAILABLE FACULTY GUIDES</h2>
+  <p class="muted">
+    All active guides with available seats are shown. Faculty guides are not filtered by specialization.
+  </p>
+</div>
+
+{% if faculties %}
+<div class="faculty-grid">
+  {% for item in faculties %}
+  <div class="faculty-card">
+    <h2>{{ item.faculty.faculty_name }}</h2>
+    <p><strong>Email:</strong> {{ item.faculty.email or 'Not specified' }}</p>
+    <p><strong>Assigned:</strong> {{ item.assigned }} / {{ item.faculty.max_students }}</p>
+    <p><strong>Available:</strong> {{ item.available }}</p>
+
+    <form method="POST" action="{{ url_for('review_allocation') }}">
+      <input type="hidden" name="faculty_id" value="{{ item.faculty.id }}">
+      <button class="btn primary" type="submit">CONFIRM GUIDE</button>
+    </form>
+  </div>
+  {% endfor %}
+</div>
+{% else %}
+<div class="card empty">
+  <h2>No active guides available</h2>
+  <p>All guides are currently full or inactive. Please contact the administrator.</p>
+</div>
+{% endif %}
+{% endif %}
+
+{% if show_confirmation and selected_faculty %}
+<div class="card confirmation-card">
+  {% if saved_confirmation %}
+  <div class="success-banner">
+    <h2>✓ Guide Saved Successfully</h2>
+    <p>Your guide allocation has been saved in the allocated data.</p>
+  </div>
+  {% else %}
+  <h2>Guide Confirmation Details</h2>
+  <p class="muted">Check the details below and save your confirmation.</p>
+  {% endif %}
+
+  <div class="summary">
+    <p><span>Guide Name</span><strong>{{ selected_faculty.faculty_name }}</strong></p>
+    <p><span>Guide Email</span><strong>{{ selected_faculty.email or 'Not specified' }}</strong></p>
+    <p><span>Student Name</span><strong>{{ student.name }}</strong></p>
+    <p><span>Register Number</span><strong>{{ student.reg_no }}</strong></p>
+    <p><span>Student Email</span><strong>{{ student.email or 'Not specified' }}</strong></p>
+    <p><span>Specialization</span><strong>{{ selected_specialization }}</strong></p>
+    <p><span>Confirmation Time</span><strong>{{ confirmation_time }}</strong></p>
+  </div>
+
+  {% if not saved_confirmation %}
+  <form method="POST" action="{{ url_for('confirm_allocation') }}">
+    <input type="hidden" name="faculty_id" value="{{ selected_faculty.id }}">
+    <button class="btn primary" type="submit">SAVE CONFIRMATION</button>
+  </form>
+  {% endif %}
+</div>
+{% endif %}
+{% endblock %}

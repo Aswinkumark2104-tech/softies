@@ -1,0 +1,47 @@
+{% extends "base.html" %}
+{% block title %}Confirm Guide{% endblock %}
+{% block content %}
+<div class="student-round-timer {% if not timer_active %}closed{% endif %}">
+  <span>Selection time</span>
+  <strong id="pageCountdown">{% if timer_active %}{{ "%d:%02d"|format(remaining_seconds // 60, remaining_seconds % 60) }}{% else %}--:--{% endif %}</strong>
+</div>
+<script>
+let pageActive = {{ 'true' if timer_active else 'false' }};
+let pageRemaining = {{ remaining_seconds|int }};
+const pageCountdown = document.getElementById('pageCountdown');
+let redirecting = false;
+function updatePageTimer() {
+  pageCountdown.textContent = pageActive ? Math.floor(Math.max(0,pageRemaining)/60) + ':' + String(Math.max(0,pageRemaining)%60).padStart(2,'0') : '--:--';
+  if (!pageActive && !redirecting) { redirecting=true; setTimeout(() => { window.location.href='{{ url_for("index") }}'; }, 300); }
+}
+setInterval(async () => {
+  try { const r=await fetch('/api/round-status',{cache:'no-store'}); const d=await r.json(); pageActive=d.active; pageRemaining=d.remaining_seconds; updatePageTimer(); } catch(e) {}
+},1000);
+setInterval(() => { if(pageActive && pageRemaining>0) pageRemaining--; updatePageTimer(); },1000);
+</script>
+<div class="card confirmation-card">
+  <p class="step">Step 3 of 3</p>
+  <h1>Confirm Your Guide</h1>
+  <p class="muted">Please check the details below before saving your guide selection.</p>
+
+  <div class="summary">
+    <p><span>Guide Name</span><strong>{{ faculty.faculty_name }}</strong></p>
+    <p><span>Guide Email</span><strong>{{ faculty.email or 'Not specified' }}</strong></p>
+    <p><span>Student Name</span><strong>{{ student.name }}</strong></p>
+    <p><span>Register Number</span><strong>{{ student.reg_no }}</strong></p>
+    <p><span>Student Email</span><strong>{{ student.email or 'Not specified' }}</strong></p>
+    <p><span>Specialization</span><strong>{{ specialization }}</strong></p>
+    <p><span>Confirmation Time</span><strong>{{ confirmation_time }}</strong></p>
+  </div>
+
+  <div class="confirmation-actions">
+    <form method="GET" action="{{ url_for('faculty_selection') }}">
+      <button class="btn" type="submit">BACK TO GUIDES</button>
+    </form>
+    <form method="POST" action="{{ url_for('confirm_allocation') }}">
+      <input type="hidden" name="faculty_id" value="{{ faculty.id }}">
+      <button class="btn primary" type="submit">SAVE CONFIRMATION</button>
+    </form>
+  </div>
+</div>
+{% endblock %}

@@ -1,0 +1,121 @@
+{% extends "base.html" %}
+{% block title %}Faculty Guide Selection{% endblock %}
+{% block content %}
+<div class="hero-card">
+  <div class="round-status {% if timer_active %}live{% else %}closed{% endif %}">
+    <span class="status-dot"></span>
+    <span id="roundLabel">{% if timer_active %}Selection is LIVE{% else %}Selection is not started{% endif %}</span>
+    <strong id="countdown">{% if timer_active %}{{ "%d:%02d"|format(remaining_seconds // 60, remaining_seconds % 60) }}{% else %}--:--{% endif %}</strong>
+  </div>
+
+  <h1>Faculty Guide Selection</h1>
+  <p class="muted">Enter your Register Number to continue.</p>
+
+  {% if not timer_active %}
+  <div class="notice warning">The administrator has not started the selection yet. Please wait.</div>
+  {% endif %}
+
+  <form id="regForm" onsubmit="return false;">
+    <label>Register Number</label>
+    <input id="reg_no" type="text" autocomplete="off" placeholder="Enter Register Number" required {% if not timer_active %}disabled{% endif %}>
+    <div id="studentResult" class="lookup"></div>
+    <button id="continueBtn" class="btn primary" disabled>OK &amp; Continue</button>
+  </form>
+</div>
+
+<script>
+const input = document.getElementById('reg_no');
+const result = document.getElementById('studentResult');
+const button = document.getElementById('continueBtn');
+const countdown = document.getElementById('countdown');
+const roundLabel = document.getElementById('roundLabel');
+let timer;
+let currentActive = {{ 'true' if timer_active else 'false' }};
+let remaining = {{ remaining_seconds|int }};
+
+function formatTime(total) {
+  total = Math.max(0, total);
+  return Math.floor(total / 60) + ':' + String(total % 60).padStart(2, '0');
+}
+
+function updateTimer() {
+  countdown.textContent = currentActive ? formatTime(remaining) : '--:--';
+  if (remaining <= 0 && currentActive) {
+    currentActive = false;
+    roundLabel.textContent = 'Selection time has ended';
+    input.disabled = true;
+    button.disabled = true;
+    result.innerHTML = '<span class="error-text">The selection time has ended.</span>';
+  }
+}
+
+setInterval(async () => {
+  try {
+    const response = await fetch('/api/round-status', {cache: 'no-store'});
+    const data = await response.json();
+    currentActive = data.active;
+    remaining = data.remaining_seconds;
+    updateTimer();
+    if (!currentActive) {
+      roundLabel.textContent = 'Selection is not started';
+      input.disabled = true;
+      button.disabled = true;
+    } else if (!input.disabled) {
+      roundLabel.textContent = 'Selection is LIVE';
+    } else {
+      input.disabled = false;
+      roundLabel.textContent = 'Selection is LIVE';
+    }
+  } catch (e) {}
+}, 1000);
+
+if (currentActive) {
+  input.disabled = false;
+  let localCountdown = setInterval(() => {
+    if (remaining > 0) remaining--;
+    updateTimer();
+    if (!currentActive) clearInterval(localCountdown);
+  }, 1000);
+}
+
+input.addEventListener('input', () => {
+  clearTimeout(timer);
+  button.disabled = true;
+  result.textContent = '';
+  const value = input.value.trim();
+  if (!value || !currentActive) return;
+  timer = setTimeout(async () => {
+    try {
+      const response = await fetch('/api/student/' + encodeURIComponent(value), {cache: 'no-store'});
+      const data = await response.json();
+      if (!data.valid) {
+        result.innerHTML = '<span class="error-text">' + (data.message || 'Register number not found.') + '</span>';
+        return;
+      }
+      if (data.already_allocated) {
+        result.innerHTML = '<span class="success-text">Already allocated to ' + data.faculty + ' on ' + data.date_time + '.</span>';
+        return;
+      }
+      result.innerHTML = '<strong>Student Name:</strong> ' + data.name + '<br><small>Email: ' + (data.email || 'Not available') + '</small>';
+      button.disabled = false;
+    } catch (e) {
+      result.innerHTML = '<span class="error-text">Unable to check register number.</span>';
+    }
+  }, 250);
+});
+
+button.addEventListener('click', () => {
+  if (!currentActive) return;
+  const form = document.createElement('form');
+  form.method = 'POST';
+  form.action = '{{ url_for("specialization") }}';
+  const hidden = document.createElement('input');
+  hidden.type = 'hidden';
+  hidden.name = 'reg_no';
+  hidden.value = input.value.trim();
+  form.appendChild(hidden);
+  document.body.appendChild(form);
+  form.submit();
+});
+</script>
+{% endblock %}

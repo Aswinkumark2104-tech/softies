@@ -1,0 +1,23 @@
+services:
+  - type: web
+    name: faculty-guide-selection
+    runtime: python
+    buildCommand: pip install -r requirements.txt
+    startCommand: gunicorn app:app
+    healthCheckPath: /health
+    envVars:
+      - key: DATABASE_URL
+        fromDatabase:
+          name: faculty-guide-db
+          property: connectionString
+      - key: SECRET_KEY
+        generateValue: true
+      - key: ADMIN_USER
+        sync: false
+      - key: ADMIN_PASSWORD
+        sync: false
+
+databases:
+  - name: faculty-guide-db
+    databaseName: faculty_guide
+    user: faculty_guide_user
